@@ -5,43 +5,65 @@ def mgdefinition(mpc_obj, nc_sw):
     nc_sw = np.array(nc_sw, dtype=int)
     # ******************** Defining MGs *******************
     branches = np.array(mpc_obj.branch)
-    branches[nc_sw - 1, 10] = 0
     nbus = mpc_obj.bus.shape[0]
     nbranch = branches.shape[0]
 
-    flag_bus = np.zeros(nbus)
-    flag_branch = np.zeros(nbranch)
+    flag_bus = np.zeros((nc_sw.shape[0], nbus))
+    flag_branch = np.zeros((nc_sw.shape[0], nbranch))
 
-    nc_sw_mg = []
+    nc_sw_mg = np.zeros((nc_sw.shape[0], nbus, 3))
+    # nc_sw_mg = np.reshape(nc_sw_mg, (nc_sw.shape[0], -1))
 
-    flag_bus[0] = 1
+    flag_bus[:, 0] = 1
 
     for i in range(nbranch):
         start_index = int(branches[i, 0]) - 1
         end_index = int(branches[i, 1]) - 1
-        linked = int(branches[i, 10])
+        linked = branches[i, 10] == 1 and np.logical_not(np.isin(nc_sw, i + 1).any(axis=1))
+        m = flag_bus[:, start_index]
+        n = flag_bus[:, end_index]
+        max_mn = np.c_[m, n].max(axis=1)
+        linked_modification_cond = np.logical_or(flag_bus[:, start_index] != 0, flag_bus[:, end_index] != 0)
+        linked_modification_cond = np.logical_and(linked, linked_modification_cond)
 
-        if linked == 1:
-            if flag_bus[start_index] != 0 or flag_bus[end_index] != 0:
-                m = flag_bus[start_index]
-                n = flag_bus[end_index]
+        flag_bus[:, start_index] = np.where(linked_modification_cond, max_mn, flag_bus[:, start_index])
+        flag_bus[:, end_index] = np.where(linked_modification_cond, max_mn, flag_bus[:, end_index])
 
-                max_mn = max(n, m)
-                flag_bus[start_index] = max_mn
-                flag_bus[end_index] = max_mn
-            flag_branch[i] = flag_bus[end_index]
+        flag_bus[:, start_index] = np.where(np.logical_or(linked, m) == 0,
+                                            max_mn + 1,
+                                            flag_bus[:, start_index])
+        flag_bus[:, end_index] = np.where(np.logical_or(linked, n) == 0, max_mn + 1,
+                                          flag_bus[:, end_index])
 
-        else:
-            m = flag_bus[start_index]
-            n = flag_bus[end_index]
-            if n == 0:
-                flag_bus[end_index] = flag_bus.max() + 1
-            elif m == 0:
-                flag_bus[start_index] = flag_bus.max() + 1
+        flag_branch[:, i] = np.where(linked, flag_bus[:, end_index],
+                                     flag_branch[:, i])
 
-            flag_branch[i] = flag_bus[end_index]
+        nc_sw_mg[:, i, 0] = np.where(linked == 0, np.ones(nc_sw.shape[0]) * i, nc_sw_mg[:, i, 0])
+        nc_sw_mg[:, i, 1] = np.where(linked == 0, flag_bus[:, start_index], nc_sw_mg[:, i, 1])
+        nc_sw_mg[:, i, 2] = np.where(linked == 0, flag_bus[:, end_index], nc_sw_mg[:, i, 2])
 
-            nc_sw_mg.append([i + 1, flag_bus[start_index], flag_bus[end_index]])
+        # nc_sw_mg.append([i + 1, flag_bus[start_index], flag_bus[end_index]])
+        # if linked == 1:
+        #     if flag_bus[start_index] != 0 or flag_bus[end_index] != 0:
+        #         m = flag_bus[start_index]
+        #         n = flag_bus[end_index]
+        #
+        #         max_mn = max(n, m)
+        #         flag_bus[start_index] = max_mn
+        #         flag_bus[end_index] = max_mn
+        #     flag_branch[i] = flag_bus[end_index]
+        #
+        # else:
+        #     m = flag_bus[start_index]
+        #     n = flag_bus[end_index]
+        #     if n == 0:
+        #         flag_bus[end_index] = flag_bus.max() + 1
+        #     elif m == 0:
+        #         flag_bus[start_index] = flag_bus.max() + 1
+        #
+        #     flag_branch[i] = flag_bus[end_index]
+        #
+        #     nc_sw_mg.append([i + 1, flag_bus[start_index], flag_bus[end_index]])
     return flag_bus, flag_branch, nc_sw_mg
 
 

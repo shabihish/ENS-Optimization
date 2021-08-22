@@ -1,3 +1,5 @@
+import numpy as np
+
 from ens.helper.helper import *
 from ens.computation.protection import *
 from ens.computation.calc_isolation_switch_time import calc_isolation_switch_time
@@ -8,11 +10,6 @@ from ens.computation.restoration import restoration
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
              livebus_loc, livebus_auto, current_xy, speed):
     # initialization
-    sw_recloser = np.array(sw_recloser, copy=True)
-    sw_sectionalizer = np.array(sw_sectionalizer, copy=True)
-    sw_automatic_sectioner = np.array(sw_automatic_sectioner, copy=True)
-    sw_manual_sectioner = np.array(sw_manual_sectioner, copy=True)
-    sw_cutout = np.array(sw_cutout, copy=True)
     livebus_loc = np.array(livebus_loc, copy=True)
     livebus_auto = np.array(livebus_auto, copy=True)
     current_xy = np.array(current_xy, copy=True)

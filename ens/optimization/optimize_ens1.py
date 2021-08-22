@@ -34,10 +34,10 @@ def opt_fun(branch, mpc_obj, switches_arr, sw_recloser_exist, sw_sectionalizer_e
     sw_sectioner_manual_current =np.append(sw_sectioner_manual_exist, branch[switches_arr[0]+switches_arr[1]+switches_arr[2]:switches_arr[0]+switches_arr[1]+switches_arr[2]+switches_arr[3]])
     sw_sectioner_automatic_current =np.append(sw_sectioner_automatic_exist, branch[switches_arr[0]+switches_arr[1]+switches_arr[2]+switches_arr[3]:switches_arr[0]+switches_arr[1]+switches_arr[2]+switches_arr[3]+switches_arr[4]])
 
-    return calc_ENS(mpc_obj, sw_recloser_current, sw_sectionalizer_current,
-            sw_sectioner_automatic_current, sw_sectioner_manual_current, sw_cutout_current, livebus_loc, livebus_auto,
-            current_xy, speed)
-
+    # return calc_ENS(mpc_obj, sw_recloser_current, sw_sectionalizer_current,
+    #         sw_sectioner_automatic_current, sw_sectioner_manual_current, sw_cutout_current, livebus_loc, livebus_auto,
+    #         current_xy, speed)
+    return 10
 def optimize(mpc_obj, avail_branches, switches_arr, sw_recloser_exist, sw_sectionalizer_exist,
              sw_sectioner_automatic_exist, sw_sectioner_manual_exist, sw_cutout_exist, livebus_loc, livebus_auto,
              current_xy, speed):
