@@ -1,15 +1,13 @@
 import numpy as np
-import copy
 
 
 def mgdefinition(mpc_obj, nc_sw):
-    nc_sw = np.array([int(x) for x in nc_sw])
-    nc_sw.sort()
+    nc_sw = np.array(nc_sw, dtype=int)
     # ******************** Defining MGs *******************
-    mpc_obj =copy.deepcopy(mpc_obj)
-    mpc_obj.branch.iloc[nc_sw - 1, 10] = 0
+    branches = np.array(mpc_obj.branch)
+    branches[nc_sw - 1, 10] = 0
     nbus = mpc_obj.bus.shape[0]
-    nbranch = mpc_obj.branch.shape[0]
+    nbranch = branches.shape[0]
 
     flag_bus = np.zeros(nbus)
     flag_branch = np.zeros(nbranch)
@@ -17,12 +15,11 @@ def mgdefinition(mpc_obj, nc_sw):
     nc_sw_mg = []
 
     flag_bus[0] = 1
-    brbus = mpc_obj.branch.iloc[0:nbranch, [0, 1, 10]]
 
     for i in range(nbranch):
-        start_index = int(brbus.iloc[i, 0]) - 1
-        end_index = int(brbus.iloc[i, 1]) - 1
-        linked = int(brbus.iloc[i, 2])
+        start_index = int(branches[i, 0]) - 1
+        end_index = int(branches[i, 1]) - 1
+        linked = int(branches[i, 10])
 
         if linked == 1:
             if flag_bus[start_index] != 0 or flag_bus[end_index] != 0:

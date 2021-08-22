@@ -1,6 +1,6 @@
 from ens.helper.helper import *
 from ens.helper.MPC import MPC
-from ens.optimization.optimize_ens import optimize_ens
+from ens.optimization.optimize_ens1 import optimize_ens
 
 clearc()
 mpc_obj = MPC('cases/case33bw')
