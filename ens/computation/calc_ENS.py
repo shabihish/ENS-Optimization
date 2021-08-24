@@ -10,6 +10,13 @@ from ens.computation.restoration import restoration
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
              livebus_loc, livebus_auto, current_xy, speed):
     # initialization
+    sw_recloser = np.array(sw_recloser, copy=True)
+    sw_sectionalizer = np.array(sw_sectionalizer, copy=True)
+    sw_automatic_sectioner = np.array(sw_automatic_sectioner, copy=True)
+    sw_manual_sectioner = np.array(sw_manual_sectioner, copy=True)
+    sw_cutout = np.array(sw_cutout, copy=True)
+
+
     livebus_loc = np.array(livebus_loc, copy=True)
     livebus_auto = np.array(livebus_auto, copy=True)
     current_xy = np.array(current_xy, copy=True)
@@ -17,10 +24,10 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
     mpc_obj.bus_load_factor = mpc_obj.bus_load_factor.astype(float)
     mpc_obj.bus.iloc[:, [2, 3]] = (mpc_obj.bus.iloc[:, [2, 3]] * mpc_obj.bus_load_factor.iloc[:, 0]).iloc[:, [2, 3]]
 
-    sw_isolator_loc = np.r_[sw_automatic_sectioner, sw_manual_sectioner, sw_cutout]
-    sw_isolator_auto = np.r_[np.ones(sw_automatic_sectioner.shape), np.zeros(sw_manual_sectioner.shape),
+    sw_isolator_loc = np.c_[sw_automatic_sectioner, sw_manual_sectioner, sw_cutout]
+    sw_isolator_auto = np.c_[np.ones(sw_automatic_sectioner.shape), np.zeros(sw_manual_sectioner.shape),
                              np.zeros(sw_cutout.shape)]
-    sw_protector_loc = np.append(sw_recloser, sw_sectionalizer)
+    sw_protector_loc = np.c_[sw_recloser, sw_sectionalizer]
 
     tot_ENS = 0
     for h in range(1, mpc_obj.branch.shape[0] + 1):
@@ -34,7 +41,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
         current_xy = fault_xy
 
-        # Choosing the recloser or sectionalizer that breaks the current fault and neglecting the other in fault isolation
+        # Choosing the recloser or sectionalizer that breaks the current fault, neglecting the other in fault isolation
         used_protector, lost_power_before_maneuver = protection_type_selector(mpc_obj, sw_protector_loc, faulted_branch,
                                                                               livebus_loc)
 

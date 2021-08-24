@@ -9,8 +9,10 @@ def protection_type_selector(mpc_obj, sw_protector, faulted_branch, livebus_loc)
     nc_sw_dis1, mg_faulted1 = fault_isolation(mpc_obj, sw_protector, faulted_branch)
 
     mg_faulted1, nc_sw_mg = np.array(mg_faulted1), np.array(nc_sw_mg)
-    a = np.where(mg_faulted1 == 1)[0]+1
-    b = np.where(nc_sw_mg[:, 2] == a)
+    a = np.where(mg_faulted1 == 1)[1]+1
+
+    b = np.where(nc_sw_mg[:,:, 2] == a)
+    b = np.where(nc_sw_mg[:, :, 2] == np.reshape(a, (2, 1)))
     used_protector = nc_sw_mg[b[0],0]
 
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, used_protector)

@@ -42,6 +42,28 @@ def mgdefinition(mpc_obj, nc_sw):
         nc_sw_mg[:, i, 1] = np.where(linked == 0, flag_bus[:, start_index], nc_sw_mg[:, i, 1])
         nc_sw_mg[:, i, 2] = np.where(linked == 0, flag_bus[:, end_index], nc_sw_mg[:, i, 2])
 
+        # nc_sw_mg.append([i + 1, flag_bus[start_index], flag_bus[end_index]])
+        # if linked == 1:
+        #     if flag_bus[start_index] != 0 or flag_bus[end_index] != 0:
+        #         m = flag_bus[start_index]
+        #         n = flag_bus[end_index]
+        #
+        #         max_mn = max(n, m)
+        #         flag_bus[start_index] = max_mn
+        #         flag_bus[end_index] = max_mn
+        #     flag_branch[i] = flag_bus[end_index]
+        #
+        # else:
+        #     m = flag_bus[start_index]
+        #     n = flag_bus[end_index]
+        #     if n == 0:
+        #         flag_bus[end_index] = flag_bus.max() + 1
+        #     elif m == 0:
+        #         flag_bus[start_index] = flag_bus.max() + 1
+        #
+        #     flag_branch[i] = flag_bus[end_index]
+        #
+        #     nc_sw_mg.append([i + 1, flag_bus[start_index], flag_bus[end_index]])
     return flag_bus, flag_branch, nc_sw_mg
 
 
@@ -51,16 +73,17 @@ def fault_isolation(mpc_obj, nc_sw_loc, faulted_branch):
     faulted_branch = np.array(faulted_branch)
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_loc)
 
-    nc_sw_opened_loc = np.zeros((flag_bus.shape[0], nc_sw_loc.shape[1]))
-    mg_No = np.ndarray.astype(flag_bus.max(axis=1), dtype=int)
+    nc_sw_opened_loc = []
+    mg_No = int(flag_bus.max())
 
-    mg_faulted = np.zeros((flag_bus.shape[0], mg_No.max()))
+    mg_faulted = np.zeros(mg_No)
 
-    for i in range(faulted_branch.shape[0]):
-        mgf = np.ndarray.astype(flag_branch[:, faulted_branch[i] - 1],dtype=int)
-        for j in range(nc_sw_loc.shape[1]):
-            condition = np.logical_and(np.logical_or(nc_sw_mg[:,j,1]==mgf, nc_sw_mg[:,j,2]==mgf),np.isin(nc_sw_loc[:, j], nc_sw_opened_loc))
-            nc_sw_opened_loc[:, j] = np.where(condition, nc_sw_loc[:,j], nc_sw_opened_loc[:, j])
+    for i in range(len(faulted_branch)):
+        mgf = flag_branch[faulted_branch[i] - 1]
+        for j in range(len(nc_sw_loc)):
+            if nc_sw_mg[j][1] == mgf or nc_sw_mg[j][2] == mgf:
+                if int(nc_sw_loc[j]) not in nc_sw_opened_loc:
+                    nc_sw_opened_loc.append(nc_sw_loc[j])
 
-        mg_faulted[:, mgf - 1] = 1
+        mg_faulted[int(mgf) - 1] = 1
     return nc_sw_opened_loc, mg_faulted
