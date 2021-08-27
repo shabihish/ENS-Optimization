@@ -16,7 +16,6 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
     sw_manual_sectioner = np.array(sw_manual_sectioner, copy=True)
     sw_cutout = np.array(sw_cutout, copy=True)
 
-
     livebus_loc = np.array(livebus_loc, copy=True)
     livebus_auto = np.array(livebus_auto, copy=True)
     current_xy = np.array(current_xy, copy=True)
@@ -31,10 +30,10 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
     tot_ENS = 0
     for h in range(1, mpc_obj.branch.shape[0] + 1):
-        faulted_branch = [h]
+        faulted_branch = np.ones((livebus_loc.shape[0], 1), dtype=int) * h
 
-        temp_a = int(mpc_obj.branch.at[faulted_branch[0] - 1, 0]) - 1
-        temp_b = int(mpc_obj.branch.at[faulted_branch[0] - 1, 1]) - 1
+        temp_a = int(mpc_obj.branch.at[h - 1, 0]) - 1
+        temp_b = int(mpc_obj.branch.at[h - 1, 1]) - 1
         temp_c = mpc_obj.bus_xy.iloc[temp_a, :]
         temp_d = mpc_obj.bus_xy.iloc[temp_b, :]
         fault_xy = (temp_c + temp_d) / 2

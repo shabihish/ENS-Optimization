@@ -25,7 +25,7 @@ def mg_res(mpc, nc_sw):
 
 @pytest.fixture
 def fault_isolation_res(mpc):
-    return fault_isolation(mpc, [[1,2,3],[1,2,3]], 1)
+    return fault_isolation(mpc, [[1, 2, 3, 4], [12, 13, 1, 9], [12, 13, 1, 9]], [[18, 19], [1, 16], [1, 20]])
 
 
 # testing row 1 of mg_res
@@ -69,9 +69,14 @@ def test_mg_nc_sw_mg2(mg_res):
 
 
 # testing row1 of fault_isolation_res
-def test_fault_isolation_nc_sw_opened_loc1(fault_isolation_res):
-    nc_sw_opened_loc,_ = fault_isolation_res
-    assert np.array_equal(nc_sw_opened_loc[0,...]==)
+def test_fault_isolation_nc_sw_opened_loc(fault_isolation_res):
+    nc_sw_opened_loc, _ = fault_isolation_res
+    assert np.array_equal(nc_sw_opened_loc ,np.array([[1, 2, 0, 0, ], [1, 9, 13, 0, ], [1, 9, 0, 0, ]]))
+
+    def test_fault_isolation_nc_sw_opened_loc(fault_isolation_res):
+        _, mg_faulted = fault_isolation_res
+        assert np.array_equal(mg_faulted , np.array([[0, 1, 0, 0, 0, ], [0, 1, 0, 0, 1, ], [0, 1, 0, 0, 0, ]]))
+
 
 @pytest.mark.skip
 def test_mg_calc_flag_branch(mg_res):
