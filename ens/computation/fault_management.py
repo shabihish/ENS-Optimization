@@ -35,10 +35,9 @@ def mgdefinition(mpc_obj, nc_sw):
         flag_bus[:, end_index] = np.where(np.logical_or(linked, n) == 0, max_mn + 1,
                                           flag_bus[:, end_index])
 
-        flag_branch[:, i] = np.where(linked, flag_bus[:, end_index],
-                                     flag_branch[:, i])
+        flag_branch[:, i] = flag_bus[:, end_index]
 
-        nc_sw_mg[:, i, 0] = np.where(linked == 0, np.ones(nc_sw.shape[0]) * i, nc_sw_mg[:, i, 0])
+        nc_sw_mg[:, i, 0] = np.where(linked == 0, np.ones(nc_sw.shape[0]) * (i+1), nc_sw_mg[:, i, 0])
         nc_sw_mg[:, i, 1] = np.where(linked == 0, flag_bus[:, start_index], nc_sw_mg[:, i, 1])
         nc_sw_mg[:, i, 2] = np.where(linked == 0, flag_bus[:, end_index], nc_sw_mg[:, i, 2])
 

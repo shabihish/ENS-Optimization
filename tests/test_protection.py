@@ -4,7 +4,8 @@ import os
 
 import ens
 import ens as protection
-from ens.helper import MPC
+from ens.helper.MPC import MPC
+from ens.computation.fault_management import mgdefinition, fault_isolation
 
 
 @pytest.fixture
@@ -14,21 +15,65 @@ def mpc():
 
 @pytest.fixture
 def nc_sw():
-    return np.arange(1, 12)
+    return np.array([[1, 2, 3], [1, 2, 3]])
 
 
 @pytest.fixture
 def mg_res(mpc, nc_sw):
-    return ens.computation.fault_management.mgdefinition(mpc, nc_sw)
+    return mgdefinition(mpc, nc_sw)
 
 
-def test_mg_calc_flag_bus(mg_res):
-    flag_bus = mg_res[0]
-    expected_res = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 6, 6,
-                    6, 6, 6]
-    assert len(flag_bus) == len(expected_res) and [flag_bus[i] == expected_res[i] for i in range(len(flag_bus))]
+@pytest.fixture
+def fault_isolation_res(mpc):
+    return fault_isolation(mpc, [[1,2,3],[1,2,3]], 1)
 
 
+# testing row 1 of mg_res
+def test_mg_flag_bus1(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(flag_bus[0, ...], np.array(
+        [1., 2., 3., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 2., 2., 2., 2., 3., 3., 3., 4., 4., 4.,
+         4., 4., 4., 4., 4.]))
+
+
+def test_mg_flag_branch1(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(flag_branch[0, ...],
+                          np.array([2., 3., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4.,
+                                    2., 2., 2., 2., 3., 3., 3., 4., 4., 4., 4., 4., 4., 4., 4.]))
+
+
+def test_mg_nc_sw_mg1(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(nc_sw_mg[0, :3, :], [[1, 1.0, 2.0], [2, 2.0, 3.0], [3, 3.0, 4.0]])
+
+
+# testing row 2 of mg_res
+def test_mg_flag_bus2(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(flag_bus[1, ...], np.array(
+        [1., 2., 3., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 2., 2., 2., 2., 3., 3., 3., 4., 4., 4.,
+         4., 4., 4., 4., 4.]))
+
+
+def test_mg_flag_branch2(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(flag_branch[1, ...],
+                          np.array([2., 3., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4.,
+                                    2., 2., 2., 2., 3., 3., 3., 4., 4., 4., 4., 4., 4., 4., 4.]))
+
+
+def test_mg_nc_sw_mg2(mg_res):
+    flag_bus, flag_branch, nc_sw_mg = mg_res
+    assert np.array_equal(nc_sw_mg[1, :3, :], [[1, 1.0, 2.0], [2, 2.0, 3.0], [3, 3.0, 4.0]])
+
+
+# testing row1 of fault_isolation_res
+def test_fault_isolation_nc_sw_opened_loc1(fault_isolation_res):
+    nc_sw_opened_loc,_ = fault_isolation_res
+    assert np.array_equal(nc_sw_opened_loc[0,...]==)
+
+@pytest.mark.skip
 def test_mg_calc_flag_branch(mg_res):
     flag_branch = mg_res[1]
     expected_res = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 2, 2, 2, 2, 3, 3, 3, 6, 6, 6, 6, 6, 6,
@@ -37,6 +82,7 @@ def test_mg_calc_flag_branch(mg_res):
                                                       range(len(flag_branch))]
 
 
+@pytest.mark.skip
 def test_mg_calc_nc_sw_mg(mg_res):
     nc_sw_mg = mg_res[2]
     expected_res = np.array(
@@ -45,7 +91,7 @@ def test_mg_calc_nc_sw_mg(mg_res):
     assert np.array_equal(expected_res, nc_sw_mg)
 
 
-
+@pytest.mark.skip
 def test1_protection_type_selector(mpc):
     sw_protector = [1, 2, 3]
     faulted_branch = [15]
@@ -56,10 +102,11 @@ def test1_protection_type_selector(mpc):
     assert used_protector[0] == 3 and lost_power_before_restoration == 3715
 
 
+@pytest.mark.skip
 def test2_protection_type_selector(mpc):
     sw_protector = [4]
     faulted_branch = [13]
-    livebus_loc = [1,2,3,4]
+    livebus_loc = [1, 2, 3, 4]
 
     used_protector, lost_power_before_restoration = protection.protection_type_selector(mpc, sw_protector,
                                                                                         faulted_branch, livebus_loc)
