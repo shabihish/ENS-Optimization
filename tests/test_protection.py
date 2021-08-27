@@ -2,8 +2,7 @@ import pytest
 import numpy as np
 import os
 
-import ens
-import ens as protection
+from ens.computation.protection import protection_type_selector
 from ens.helper.MPC import MPC
 from ens.computation.fault_management import mgdefinition, fault_isolation
 
@@ -71,11 +70,11 @@ def test_mg_nc_sw_mg2(mg_res):
 # testing row1 of fault_isolation_res
 def test_fault_isolation_nc_sw_opened_loc(fault_isolation_res):
     nc_sw_opened_loc, _ = fault_isolation_res
-    assert np.array_equal(nc_sw_opened_loc ,np.array([[1, 2, 0, 0, ], [1, 9, 13, 0, ], [1, 9, 0, 0, ]]))
+    assert np.array_equal(nc_sw_opened_loc, np.array([[1, 2, 0, 0, ], [1, 9, 13, 0, ], [1, 9, 0, 0, ]]))
 
     def test_fault_isolation_nc_sw_opened_loc(fault_isolation_res):
         _, mg_faulted = fault_isolation_res
-        assert np.array_equal(mg_faulted , np.array([[0, 1, 0, 0, 0, ], [0, 1, 0, 0, 1, ], [0, 1, 0, 0, 0, ]]))
+        assert np.array_equal(mg_faulted, np.array([[0, 1, 0, 0, 0, ], [0, 1, 0, 0, 1, ], [0, 1, 0, 0, 0, ]]))
 
 
 @pytest.mark.skip
@@ -96,23 +95,23 @@ def test_mg_calc_nc_sw_mg(mg_res):
     assert np.array_equal(expected_res, nc_sw_mg)
 
 
-@pytest.mark.skip
 def test1_protection_type_selector(mpc):
-    sw_protector = [1, 2, 3]
-    faulted_branch = [15]
-    livebus_loc = [15, 16]
+    sw_protector = np.array([[1, 2, 3], [1, 2, 3]])
+    faulted_branch = np.array([[15], [15]])
+    livebus_loc = np.array([[15, 16], [15, 16]])
 
-    used_protector, lost_power_before_restoration = protection.protection_type_selector(mpc, sw_protector,
-                                                                                        faulted_branch, livebus_loc)
-    assert used_protector[0] == 3 and lost_power_before_restoration == 3715
+    used_protector, lost_power_before_restoration = protection_type_selector(mpc, sw_protector,
+                                                                             faulted_branch, livebus_loc)
+    assert np.array_equal(used_protector[:, 0], [3, 3]) and np.array_equal(lost_power_before_restoration,
+                                                                           [3715, 3715])
 
 
-@pytest.mark.skip
 def test2_protection_type_selector(mpc):
-    sw_protector = [4]
-    faulted_branch = [13]
-    livebus_loc = [1, 2, 3, 4]
+    sw_protector = np.array([[4], [4]])
+    faulted_branch = np.array([[13], [13]])
+    livebus_loc = np.array([[1, 2, 3, 4], [1, 2, 3, 4]])
 
-    used_protector, lost_power_before_restoration = protection.protection_type_selector(mpc, sw_protector,
-                                                                                        faulted_branch, livebus_loc)
-    assert used_protector[0] == 4 and lost_power_before_restoration == 2115
+    used_protector, lost_power_before_restoration = protection_type_selector(mpc, sw_protector,
+                                                                             faulted_branch, livebus_loc)
+    assert np.array_equal(used_protector[:, 0], [4, 4]) and np.array_equal(lost_power_before_restoration,
+                                                                           [2115, 2115])
