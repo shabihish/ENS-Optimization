@@ -1,7 +1,7 @@
 import numpy as np
 import restoration
 from ens.computation.fault_management import mgdefinition, fault_isolation
-
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
 
 # This function determines the recloser that breaks the current fault, neglecting the other recloser in fault isolation
 def protection_type_selector(mpc_obj, sw_protector, faulted_branch, livebus_loc):
@@ -11,12 +11,18 @@ def protection_type_selector(mpc_obj, sw_protector, faulted_branch, livebus_loc)
     mg_faulted1, nc_sw_mg = np.array(mg_faulted1), np.array(nc_sw_mg)
     a = np.where(mg_faulted1 == 1)[1] + 1
 
-    b = np.where(nc_sw_mg[:, :, 2] == a[np.newaxis].T)
-    b = np.where(nc_sw_mg[:, :, 2] == np.reshape(a, (2, 1)))
-    used_protector = nc_sw_mg[b[0], 0]
+    b_arr = nc_sw_mg[:, :, 2] == a[np.newaxis].T
+    # b = np.count_nonzero(b_arr, axis=1)
+    # b = np.zeros((nc_sw_mg.shape[0], b.max()))
+    # b = np.where(nc_sw_mg[:, :, 2] == np.reshape(a, (2, 1)))
+
+    used_protector = np.zeros((nc_sw_mg.shape[0], nc_sw_mg.shape[1]))
+    used_protector = np.where(b_arr, nc_sw_mg[:, :, 0],0)
+    used_protector = roll_non_zero_rows_to_beginning(used_protector, axis=1)
+    # used_protector = nc_sw_mg[b[0], 0]
 
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, used_protector)
-    mg_status = restoration.restoration(mpc_obj, used_protector, faulted_branch, [livebus_loc[0]])
+    mg_status = restoration.restoration(mpc_obj, used_protector, faulted_branch, livebus_loc)
 
     flag_bus = [int(x) for x in flag_bus]
     lost_power_before_restoration = 0

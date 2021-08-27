@@ -9,10 +9,10 @@ def mgdefinition(mpc_obj, nc_sw):
     nbus = mpc_obj.bus.shape[0]
     nbranch = branches.shape[0]
 
-    flag_bus = np.zeros((nc_sw.shape[0], nbus))
-    flag_branch = np.zeros((nc_sw.shape[0], nbranch))
+    flag_bus = np.zeros((nc_sw.shape[0], nbus), dtype=int)
+    flag_branch = np.zeros((nc_sw.shape[0], nbranch), dtype=int)
 
-    nc_sw_mg = np.zeros((nc_sw.shape[0], nbus, 3))
+    nc_sw_mg = np.zeros((nc_sw.shape[0], nbus, 3), dtype=int)
     # nc_sw_mg = np.reshape(nc_sw_mg, (nc_sw.shape[0], -1))
 
     flag_bus[:, 0] = 1

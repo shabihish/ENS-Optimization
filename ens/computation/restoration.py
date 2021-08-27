@@ -1,23 +1,24 @@
 from ens.computation.fault_management import mgdefinition, fault_isolation
 import numpy as np
 
+
 def restoration(mpc_obj, nc_sw, faulted_branch, livebus):
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw)
     nc_sw_dis, mg_faulted = fault_isolation(mpc_obj, nc_sw, faulted_branch)
 
-    mg_No = int(flag_bus.max())
-    mg_status = np.zeros(mg_No)
+    mg_No = np.ndarray.astype(flag_bus.max(axis=1), dtype=int)
+    mg_status = np.zeros((nc_sw.shape[0], mg_No.max()))
 
-    for i in range(len(livebus)):
-        x = int(flag_bus[int(livebus[i])-1])-1
-        mg_status[x] = (1 - mg_faulted[x])
+    for i in range(livebus.shape[1]):
+        x = flag_bus[np.arange(flag_bus.shape[0]), livebus[:, i] - 1] - 1
+        mg_status[np.arange(mg_status.shape[0]),x] = (1 - mg_faulted[np.arange(mg_faulted.shape[0]), x])
 
-    for i in range(mg_No):
-        for j in range(len(nc_sw)):
-            leftmg = int(nc_sw_mg[j][1]) - 1
-            rightmg = int(nc_sw_mg[j][2]) - 1
-            uu = max(mg_status[leftmg], mg_status[rightmg])
-            mg_status[leftmg] = uu * (1 - mg_faulted[leftmg])
-            mg_status[rightmg] = uu * (1 - mg_faulted[rightmg])
+    for i in range(mg_No.max()):
+        for j in range(nc_sw.shape[1]):
+            leftmg = nc_sw_mg[:, j,1] - 1
+            rightmg = nc_sw_mg[:,j,2] - 1
+            uu = np.maximum(mg_status[np.arange(mg_status.shape[0]), leftmg], mg_status[np.arange(mg_status.shape[0]), rightmg])
+            mg_status[np.arange(mg_status.shape[0]),leftmg] = uu * (1 - mg_faulted[np.arange(mg_status.shape[0]), leftmg])
+            mg_status[np.arange(mg_status.shape[0]), rightmg] = uu * (1 - mg_faulted[np.arange(mg_status.shape[0]), rightmg])
 
     return mg_status
