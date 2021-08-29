@@ -10,15 +10,15 @@ def optimize_ens(mpc_obj, livebus_loc, livebus_auto, sw_recloser_exist, sw_secti
     switches_arr = np.array([num_of_new_reclosers, num_of_new_cutouts,
                              num_of_new_sectionalizers, num_of_new_manual_sectioners, num_of_new_automatic_sectioners])
 
-    primary_ens = calc_ENS(mpc_obj, sw_recloser_exist, sw_sectionalizer_exist, sw_sectioner_automatic_exist,
-                           sw_sectioner_manual_exist, sw_cutout_exist, livebus_loc, livebus_auto, current_xy, speed)
+    # primary_ens = calc_ENS(mpc_obj, sw_recloser_exist, sw_sectionalizer_exist, sw_sectioner_automatic_exist,
+    #                        sw_sectioner_manual_exist, sw_cutout_exist, livebus_loc, livebus_auto, current_xy, speed)
     # primary_ens = -1
 
     avail_branches = np.arange(1, mpc_obj.branch.shape[0] + 1)
     allocated_branches = np.r_[
         sw_cutout_exist, sw_recloser_exist, sw_sectionalizer_exist, sw_sectioner_automatic_exist, sw_sectioner_manual_exist]
     avail_branches = np.delete(avail_branches, allocated_branches - 1)
-    return primary_ens, optimize( mpc_obj, avail_branches, switches_arr, sw_recloser_exist,
+    return optimize( mpc_obj, avail_branches, switches_arr, sw_recloser_exist,
                                  sw_sectionalizer_exist,
                                  sw_sectioner_automatic_exist, sw_sectioner_manual_exist, sw_cutout_exist, livebus_loc,
                                  livebus_auto,
