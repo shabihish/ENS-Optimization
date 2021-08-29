@@ -5,7 +5,7 @@ from ens.computation.protection import *
 from ens.computation.calc_isolation_switch_time import calc_isolation_switch_time
 from ens.computation.manoeuvering_bus import maneuvering_bus
 from ens.computation.restoration import restoration
-
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
 
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
              livebus_loc, livebus_auto, current_xy, speed):
@@ -45,13 +45,18 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
                                                                               livebus_loc)
 
         # fault isolation
-        nc_sw_loc = np.append(used_protector, sw_isolator_loc)
-        nc_sw_auto = np.append([1], sw_isolator_auto)
+        nc_sw_loc = np.append(used_protector, sw_isolator_loc,axis=1)
+        nc_sw_auto = np.append(np.ones((sw_isolator_auto.shape[0],1)), sw_isolator_auto, axis=1)
+
+        nc_sw_loc = roll_non_zero_rows_to_beginning(nc_sw_loc, axis=1)[:,:33]
+        nc_sw_auto = roll_non_zero_rows_to_beginning(nc_sw_auto, axis=1)[:,:33]
 
         nc_sw_opened_loc, mg_faulted = fault_isolation(mpc_obj, nc_sw_loc, faulted_branch)
-        _, index_of_nc_sw_opened_loc_in_nc_sw_loc = is_member(nc_sw_opened_loc, nc_sw_loc)
+        # _, index_of_nc_sw_opened_loc_in_nc_sw_loc = is_member(nc_sw_opened_loc, nc_sw_loc)
+        # index_of_nc_sw_opened_loc_in_nc_sw_loc =
         nc_sw_opened_auto = nc_sw_auto[index_of_nc_sw_opened_loc_in_nc_sw_loc]
 
+        nc_sw_opened_auto = np.where()
         # Calculating Isolation Time of Manual Switches
         isolation_time, current_xy = calc_isolation_switch_time(mpc_obj, nc_sw_opened_loc,
                                                                 nc_sw_opened_auto, current_xy, speed)
