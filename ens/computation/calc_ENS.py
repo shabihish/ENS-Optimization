@@ -58,6 +58,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         nc_sw_opened_loc = nc_sw_opened_loc[:, :nc_sw_auto.shape[1]]
         nc_sw_loc = nc_sw_loc[:, :nc_sw_auto.shape[1]]
 
+        # TODO: remove this line
         nc_sw_opened_loc[:, [1, 2]] = 1
         nc_sw_opened_loc = np.where(nc_sw_opened_loc == 0, -1, nc_sw_opened_loc)
         idx_tmp = np.zeros((nc_sw_auto.shape), dtype=bool)
@@ -70,16 +71,13 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         # Calculating Isolation Time of Manual Switches
         isolation_time, current_xy = calc_isolation_switch_time(mpc_obj, nc_sw_opened_loc,
                                                                 nc_sw_opened_auto, current_xy, speed)
-        repair_time = get_dist(current_xy, fault_xy) / speed + mpc_obj.branch_reliability.at[faulted_branch[0] - 1, 1]
+        repair_time = get_dist(current_xy, fault_xy) / speed + mpc_obj.branch_reliability.iloc[
+            faulted_branch[:, 0] - 1, 1]
         current_xy_repair_team = fault_xy  # Current location of the repair team
 
-        restoration_time = mpc_obj.branch_fault_allocation_time.at[0,
-                                                                   faulted_branch[
-                                                                       0] - 1] + time_to_reach_to_faulty_point + isolation_time
-        ENS0 = lost_power_before_maneuver * (
-                mpc_obj.branch_fault_allocation_time.at[0,
-                                                        faulted_branch[
-                                                            0] - 1] + time_to_reach_to_faulty_point + isolation_time)
+        restoration_time = mpc_obj.branch_fault_allocation_time.iloc[
+                               0, faulted_branch[:, 0] - 1] + time_to_reach_to_faulty_point + isolation_time
+        ENS0 = lost_power_before_maneuver * (mpc_obj.branch_fault_allocation_time.iloc[0, faulted_branch[:, 0] - 1] + time_to_reach_to_faulty_point + isolation_time)
 
         final_livebus_ordered = maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch)
 
