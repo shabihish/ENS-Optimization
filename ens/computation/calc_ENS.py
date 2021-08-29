@@ -35,8 +35,8 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
         temp_a = int(mpc_obj.branch.at[h - 1, 0]) - 1
         temp_b = int(mpc_obj.branch.at[h - 1, 1]) - 1
-        temp_c = mpc_obj.bus_xy.iloc[temp_a, :]
-        temp_d = mpc_obj.bus_xy.iloc[temp_b, :]
+        temp_c = np.array(mpc_obj.bus_xy.iloc[temp_a, :])
+        temp_d = np.array(mpc_obj.bus_xy.iloc[temp_b, :])
         fault_xy = (temp_c + temp_d) / 2
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
         current_xy = fault_xy
