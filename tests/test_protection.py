@@ -24,7 +24,8 @@ def mg_res(mpc, nc_sw):
 
 @pytest.fixture
 def fault_isolation_res(mpc):
-    return fault_isolation(mpc, [[1, 2, 3, 4], [12, 13, 1, 9], [12, 13, 1, 9]], [[18, 19], [1, 16], [1, 20]])
+    return fault_isolation(mpc, np.array([[1, 2, 3, 4], [12, 13, 1, 9], [12, 13, 1, 9]]),
+                           np.array([[18, 19], [1, 16], [1, 20]]))
 
 
 # testing row 1 of mg_res

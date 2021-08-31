@@ -48,8 +48,7 @@ def mgdefinition(mpc_obj, nc_sw):
 
 
 def fault_isolation(mpc_obj, nc_sw_loc, faulted_branch):
-    nc_sw_loc = np.array(nc_sw_loc)
-    nc_sw_loc.sort()
+    nc_sw_loc = roll_non_zero_rows_to_beginning(nc_sw_loc, axis=1)
     faulted_branch = np.array(faulted_branch)
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_loc)
 

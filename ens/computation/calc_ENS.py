@@ -59,7 +59,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         nc_sw_loc = nc_sw_loc[:, :nc_sw_auto.shape[1]]
 
         # TODO: remove this line
-        nc_sw_opened_loc[:, [1, 2]] = 1
+        # nc_sw_opened_loc[:, [1, 2]] = 1
         nc_sw_opened_loc = np.where(nc_sw_opened_loc == 0, -1, nc_sw_opened_loc)
         idx_tmp = np.zeros((nc_sw_auto.shape), dtype=bool)
         # TODO: check correctness
@@ -80,6 +80,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         ENS0 = lost_power_before_maneuver * (mpc_obj.branch_fault_allocation_time.iloc[0, faulted_branch[:, 0] - 1] + time_to_reach_to_faulty_point + isolation_time)
 
         final_livebus_ordered = maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch)
+
 
         maneuvering_time = 0
         current_xy_maneuvering_team = current_xy
