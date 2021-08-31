@@ -5,6 +5,7 @@ from restoration import *
 
 
 def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch):
+    final_livebus_ordered = np.zeros((livebus_loc.shape[0], 1))
     if livebus_loc.shape[1] != 0:
         livebus_temp = np.zeros((livebus_loc.shape[0], 2, livebus_loc.shape[1] - 1), dtype=int)
         livebus_temp[:, 0, :] = livebus_loc[:, 1:]
@@ -42,7 +43,7 @@ def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulte
         # move automatic manuovering buses first
         final_livebus_ordered = np.zeros((livebus_temp_sorted.shape[0], livebus_temp_sorted.shape[2]))
         for i in range(livebus_temp_sorted.shape[2] - 1, -1, -1):
-            tmp_cond = np.where(livebus_loc == livebus_temp_sorted[:, 0, i], livebus_auto, 0).any(axis=1)
+            tmp_cond = np.where(livebus_loc == livebus_temp_sorted[:, 0, i][..., None], livebus_auto, 0).any(axis=1)
             final_livebus_ordered[:, i] = np.where(tmp_cond, livebus_temp_sorted[:, 0, i], 0)
             # livebus_temp_sorted = np.where(tmp_cond, 0, livebus_temp_sorted)
             livebus_temp_sorted[:, :, i] = np.where(tmp_cond, 0, livebus_temp_sorted[:, 0, i])
@@ -70,9 +71,8 @@ def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulte
                                                  final_livebus_ordered, 0)
             final_livebus_ordered = np.where(np.logical_and(basic_cond, np.logical_not(tmp_cond)),
                                              new_final_livebus_ordered, final_livebus_ordered)
-            # if sum([1 for i in range(len(mg_status1)) if mg_status1[i] != mg_status2[i]]) > 0:
-            #     mg_status1 = mg_status2
-            #     unring_livebus = np.append(unring_livebus, candidate_livebus)
-    else:
-        final_livebus_ordered = np.zeros((nc_sw_opened_loc.shape[0], 1))
+
+    final_livebus_ordered = np.reshape(final_livebus_ordered,
+                                       (final_livebus_ordered.shape[0], 1, final_livebus_ordered.shape[1]))
+    final_livebus_ordered = np.append(final_livebus_ordered[:, :, :], np.zeros(final_livebus_ordered.shape), axis=1)
     return final_livebus_ordered

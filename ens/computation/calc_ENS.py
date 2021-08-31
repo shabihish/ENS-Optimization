@@ -77,13 +77,13 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
         restoration_time = mpc_obj.branch_fault_allocation_time.iloc[
                                0, faulted_branch[:, 0] - 1] + time_to_reach_to_faulty_point + isolation_time
-        ENS0 = lost_power_before_maneuver * (mpc_obj.branch_fault_allocation_time.iloc[0, faulted_branch[:, 0] - 1] + time_to_reach_to_faulty_point + isolation_time)
+        ENS0 = lost_power_before_maneuver * (mpc_obj.branch_fault_allocation_time.iloc[0, faulted_branch[:,
+                                                                                          0] - 1] + time_to_reach_to_faulty_point + isolation_time)
 
         final_livebus_ordered = maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch)
 
-
-        maneuvering_time = 0
-        current_xy_maneuvering_team = current_xy
+        maneuvering_time = np.zeros(nc_sw_loc.shape[0])
+        current_xy_maneuvering_team = np.ones(nc_sw_loc.shape[0]) * current_xy
         if final_livebus_ordered.shape[1] == 0:
             maneuvering_time = repair_time * 10
         else:

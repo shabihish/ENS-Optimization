@@ -17,14 +17,14 @@ def test1_maneuvering_bus(mpc):
     faulted_branch = np.array([[1], [1]])
 
     res = maneuvering_bus(mpc, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch)
-    assert res == 33
+    assert np.array_equal(res[res != 0], [33, 33])
 
 
 def test2_maneuvering_bus(mpc):
-    livebus_loc = [1, 11, 21, 25]
-    livebus_auto = [1, 0, 1, 1]
-    nc_sw_opened_loc = [11, 7]
-    faulted_branch = [21]
+    livebus_loc = np.array([[1, 11, 21, 25],[1, 11, 21, 25]])
+    livebus_auto = np.array([[1, 0, 1, 1],[1, 0, 1, 1]])
+    nc_sw_opened_loc = np.array([[11, 7],[11, 7]])
+    faulted_branch = np.array([[21],[21]])
 
     res = maneuvering_bus(mpc, livebus_loc, livebus_auto, nc_sw_opened_loc, faulted_branch)
-    assert res == 11
+    assert np.array_equal(res[res != 0], [11, 11])
