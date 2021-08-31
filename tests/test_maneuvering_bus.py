@@ -1,6 +1,6 @@
 import os
 import pytest
-from ens.helper import MPC
+from ens.helper.MPC import MPC
 from ens.computation.manoeuvering_bus import maneuvering_bus
 
 
