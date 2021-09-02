@@ -5,7 +5,7 @@ from ens.computation.protection import *
 from ens.computation.calc_isolation_switch_time import calc_isolation_switch_time
 from ens.computation.manoeuvering_bus import maneuvering_bus
 from ens.computation.restoration import restoration
-from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning, get_next_valued_slice_along_axis
 
 
 def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebus_loc, livebus_auto, bus_xy, speed):
@@ -29,18 +29,17 @@ def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebu
 
 
 def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
-                    nc_sw_opened_loc, faulted_branch):
+                    nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time):
     ENS0 = np.array(ENS0, copy=True)
     restoration_time = np.array(restoration_time, copy=True)
 
-    first_nonempty_column_of_fl = final_livebus_ordered[np.arange(final_livebus_ordered.shape[0]), :,
-                                  np.argmax(final_livebus_ordered[:, 0, :] != 0, axis=1)]
+    first_nonempty_column_of_fl = get_next_valued_slice_along_axis(final_livebus_ordered, axis=2)
 
     ENS0 += lost_power_before_maneuver * first_nonempty_column_of_fl[:, 1]
     restoration_time += first_nonempty_column_of_fl[:, 1]
 
     for i in range(final_livebus_ordered.shape[2] - 1):
-        livebus_new = np.ndarray.astype(np.c_[livebus_loc[:, 0][..., None], final_livebus_ordered[:, 0, :]], dtype=int)
+        livebus_new = np.ndarray.astype(np.c_[livebus_loc[:, 0][..., None], final_livebus_ordered[:, 0, :i]], dtype=int)
         flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_opened_loc)
         mg_status = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch, livebus_new)
 
@@ -48,8 +47,29 @@ def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver,
         # TODO: check correctness
         mg_bus_indicator_sum = (np.array(mpc_obj.bus.iloc[:, 2])[..., None] * np.ndarray.astype(
             flag_bus[..., None] == np.arange(1, mg_status.shape[1] + 1), int)).sum(axis=1)
-        lost_power1 += np.where(mg_status == 0, mg_bus_indicator_sum, 0).sum(axis=1)
+        lost_power1 += np.where((mg_status == 0) * final_livebus_ordered[:, :, i].any(axis=1)[..., None],
+                                mg_bus_indicator_sum, 0).sum(axis=1)
 
+        next_nonempty_column_of_fl = get_next_valued_slice_along_axis(final_livebus_ordered[:, :, i + 1:], axis=2)
+        ENS0 += lost_power1 * next_nonempty_column_of_fl[:, 1]
+        restoration_time += next_nonempty_column_of_fl[:, 1]
+
+    livebus_new = np.ndarray.astype(np.c_[livebus_loc[:, 0][..., None], final_livebus_ordered[:, 0, :]], dtype=int)
+    flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_opened_loc)
+    mg_status = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch, livebus_new)
+
+    lost_power1 = np.zeros(final_livebus_ordered.shape[0])
+
+    mg_bus_indicator_sum = (np.array(mpc_obj.bus.iloc[:, 2])[..., None] * np.ndarray.astype(
+        flag_bus[..., None] == np.arange(1, mg_status.shape[1] + 1), int)).sum(axis=1)
+    lost_power1 += np.where(mg_status == 0, mg_bus_indicator_sum, 0).sum(axis=1)
+
+    off_time_after_restoration = repair_time - maneuvering_time
+    ENS0 += lost_power1 * off_time_after_restoration
+
+    restoration_time += repair_time
+
+    print('a')
 
 
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
@@ -142,4 +162,3 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         # repair time if case
         calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
                         nc_sw_opened_loc, faulted_branch)
-        print('a')
