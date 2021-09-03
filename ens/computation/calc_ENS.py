@@ -32,6 +32,8 @@ def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebu
 def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
                     nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time, current_xy_maneuvering_team,
                     speed, current_xy_repair_team, nc_sw_opened_auto):
+    if final_livebus_ordered.shape[2] == 0:
+        return np.zeros(final_livebus_ordered.shape[0])
     ENS0 = np.array(ENS0, copy=True)
     restoration_time = np.array(restoration_time, copy=True)
 
@@ -120,11 +122,12 @@ def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver,
 
     ENS0 += lost_power1 * unisolation_time
 
-    last_nonempty_column_of_fl = get_last_valued_slice_along_axis(final_livebus_ordered[:,:, :-1], axis=2)
-    restoration_time += last_nonempty_column_of_fl[:,1]
+    last_nonempty_column_of_fl = get_last_valued_slice_along_axis(final_livebus_ordered[:, :, :-1], axis=2)
+    restoration_time += last_nonempty_column_of_fl[:, 1]
 
     added_tot_ens = ENS0 * np.array(mpc_obj.branch_reliability.iloc[faulted_branch[:, 0] - 1, 0])
     return added_tot_ens
+
 
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
              livebus_loc, livebus_auto, current_xy, speed):
@@ -213,7 +216,25 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         final_livebus_ordered[:, 1, :] = np.where(else_cond[..., None], new_fl[:, 1, :], final_livebus_ordered[:, 1, :])
         maneuvering_time = np.where(else_cond, new_mt, maneuvering_time)
 
-        # repair time if case
-        calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
-                        nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time, current_xy_maneuvering_team,
-                        speed, current_xy_repair_team, nc_sw_opened_auto)
+        # repair ens if case
+        repair_ens1 = calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver,
+                                      final_livebus_ordered,
+                                      livebus_loc,
+                                      nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time,
+                                      current_xy_maneuvering_team,
+                                      speed, current_xy_repair_team, nc_sw_opened_auto)
+
+        # repair ens else case
+        unisolation_time, current_xy_repair_team = calc_isolation_switch_time(mpc_obj,
+                                                                              nc_sw_opened_loc,
+                                                                              nc_sw_opened_auto,
+                                                                              current_xy_repair_team,
+                                                                              speed)
+        repair_ens2 = lost_power_before_maneuver * (
+                np.array(repair_time) + isolation_time + unisolation_time) * np.array(
+            mpc_obj.branch_reliability.iloc[faulted_branch[:, 0] - 1, 0])
+
+        # cases actualization
+        tot_ENS += np.where(np.array(repair_time) > maneuvering_time, repair_ens1, repair_ens2)
+        print('ens: ' + str(tot_ENS))
+    print(tot_ENS)

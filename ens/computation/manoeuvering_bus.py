@@ -46,7 +46,7 @@ def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulte
             tmp_cond = np.where(livebus_loc == livebus_temp_sorted[:, 0, i][..., None], livebus_auto, 0).any(axis=1)
             final_livebus_ordered[:, i] = np.where(tmp_cond, livebus_temp_sorted[:, 0, i], 0)
             # livebus_temp_sorted = np.where(tmp_cond, 0, livebus_temp_sorted)
-            livebus_temp_sorted[:, :, i] = np.where(tmp_cond, 0, livebus_temp_sorted[:, 0, i])
+            livebus_temp_sorted[:, :, i] = np.where(tmp_cond, 0, livebus_temp_sorted[:, 0, i])[..., None]
             # livebus_temp_sorted = np.where(tmp_cond, livebus_temp_sorted[:, 0, i], 0)
             # if np.where(livebus_loc == livebus_temp_sorted[:, 0, i], livebus_auto, 0).any(axis=1) == 1:
             #     final_livebus_ordered = np.append(final_livebus_ordered, )
@@ -56,7 +56,7 @@ def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulte
         final_livebus_ordered = np.c_[final_livebus_ordered, livebus_temp_sorted[:, 0, :]]
 
         # check if manoeuvring buses do not create ring path
-        unring_livebus = np.array([[], []], dtype=int)
+        unring_livebus = np.zeros((final_livebus_ordered.shape[0], 1), dtype=int)[:, 0:0]
         for i in range(final_livebus_ordered.shape[1]):
             candidate_livebus = final_livebus_ordered[:, i]
             mg_status2 = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch,
