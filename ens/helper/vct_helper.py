@@ -14,3 +14,13 @@ def get_next_valued_slice_along_axis(arr, axis=0):
         args = np.argmax(arr.any(axis=axis - 1), axis=axis - 1)
 
     return arr[..., np.arange(arr.shape[axis - 1]), args]
+
+
+def get_last_valued_slice_along_axis(arr, axis=0):
+    arr = arr[..., ::-1]
+    if axis == 0:
+        args = np.argmax(arr.any(axis=0), axis=0)
+    else:
+        args = np.argmax(arr.any(axis=axis - 1), axis=axis - 1)
+
+    return arr[..., np.arange(arr.shape[axis - 1]), args]

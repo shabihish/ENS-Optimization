@@ -5,7 +5,8 @@ from ens.computation.protection import *
 from ens.computation.calc_isolation_switch_time import calc_isolation_switch_time
 from ens.computation.manoeuvering_bus import maneuvering_bus
 from ens.computation.restoration import restoration
-from ens.helper.vct_helper import roll_non_zero_rows_to_beginning, get_next_valued_slice_along_axis
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
+from ens.helper.vct_helper import get_next_valued_slice_along_axis, get_last_valued_slice_along_axis
 
 
 def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebus_loc, livebus_auto, bus_xy, speed):
@@ -29,9 +30,15 @@ def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebu
 
 
 def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
-                    nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time):
+                    nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time, current_xy_maneuvering_team,
+                    speed, current_xy_repair_team, nc_sw_opened_auto):
     ENS0 = np.array(ENS0, copy=True)
     restoration_time = np.array(restoration_time, copy=True)
+
+    if type(repair_time) != np.ndarray:
+        repair_time = np.array(repair_time)
+    if type(maneuvering_time) != np.ndarray:
+        maneuvering_time = np.array(maneuvering_time)
 
     first_nonempty_column_of_fl = get_next_valued_slice_along_axis(final_livebus_ordered, axis=2)
 
@@ -68,9 +75,56 @@ def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver,
     ENS0 += lost_power1 * off_time_after_restoration
 
     restoration_time += repair_time
+    for j in range(final_livebus_ordered.shape[2] - 1):
+        final_livebus_ordered[:, 1, j] = np.where(final_livebus_ordered[:, 0, j] != 0,
+                                                  get_dist(current_xy_maneuvering_team, np.array(
+                                                      mpc_obj.bus_xy.iloc[final_livebus_ordered[:, 0, j] - 1,
+                                                      :])) / speed,
+                                                  final_livebus_ordered[:, 1, j])
 
-    print('a')
+        current_xy_maneuvering_team = np.where((final_livebus_ordered[:, 0, j] != 0)[..., None],
+                                               np.array(mpc_obj.bus_xy.iloc[final_livebus_ordered[:, 0, j] - 1, :]),
+                                               current_xy_maneuvering_team)
 
+    for i in range(final_livebus_ordered.shape[2] - 1):
+        livebus_new = np.ndarray.astype(np.c_[livebus_loc[:, 0][..., None], final_livebus_ordered[:, 0, :i - 1]],
+                                        dtype=int)
+        flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_opened_loc)
+        mg_status = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch, livebus_new)
+
+        lost_power1 = np.zeros(final_livebus_ordered.shape[0])
+
+        mg_bus_indicator_sum = (np.array(mpc_obj.bus.iloc[:, 2])[..., None] * np.ndarray.astype(
+            flag_bus[..., None] == np.arange(1, mg_status.shape[1] + 1), int)).sum(axis=1)
+        lost_power1 += np.where((mg_status == 0) * final_livebus_ordered[:, :, i].any(axis=1)[..., None],
+                                mg_bus_indicator_sum, 0).sum(axis=1)
+
+        next_nonempty_column_of_fl = get_next_valued_slice_along_axis(final_livebus_ordered[:, :, i + 1:], axis=2)
+        ENS0 += lost_power1 * next_nonempty_column_of_fl[:, 1]
+        restoration_time += next_nonempty_column_of_fl[:, 1]
+
+    unisolation_time, current_xy_repair_team = calc_isolation_switch_time(mpc_obj, nc_sw_opened_loc,
+                                                                          nc_sw_opened_auto,
+                                                                          current_xy_repair_team, speed)
+
+    livebus_new = livebus_loc[:, 0][..., None]
+    flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_opened_loc)
+    mg_status = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch, livebus_new)
+
+    lost_power1 = np.zeros(final_livebus_ordered.shape[0])
+
+    mg_bus_indicator_sum = (np.array(mpc_obj.bus.iloc[:, 2])[..., None] * np.ndarray.astype(
+        flag_bus[..., None] == np.arange(1, mg_status.shape[1] + 1), int)).sum(axis=1)
+    lost_power1 += np.where(mg_status == 0,
+                            mg_bus_indicator_sum, 0).sum(axis=1)
+
+    ENS0 += lost_power1 * unisolation_time
+
+    last_nonempty_column_of_fl = get_last_valued_slice_along_axis(final_livebus_ordered[:,:, :-1], axis=2)
+    restoration_time += last_nonempty_column_of_fl[:,1]
+
+    added_tot_ens = ENS0 * np.array(mpc_obj.branch_reliability.iloc[faulted_branch[:, 0] - 1, 0])
+    return added_tot_ens
 
 def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_manual_sectioner, sw_cutout,
              livebus_loc, livebus_auto, current_xy, speed):
@@ -148,17 +202,18 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         maneuvering_time = np.zeros(nc_sw_loc.shape[0])
 
         # manouvering time if case
-        if_cond = (final_livebus_ordered.any(axis=1).any(axis=1) == 0)[..., None]
-        maneuvering_time = maneuvering_time = np.where(if_cond, repair_time * 10,
-                                                       maneuvering_time)
+        if_cond = (final_livebus_ordered.any(axis=1).any(axis=1) == 0)
+        maneuvering_time = np.where(if_cond, repair_time * 10,
+                                    maneuvering_time)
         # else case
         else_cond = np.logical_not(if_cond)
         new_cxym, new_fl, new_mt = get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebus_loc,
                                                                       livebus_auto, mpc_obj.bus_xy, speed)
-        current_xy_maneuvering_team = np.where(else_cond, new_cxym, current_xy)
-        final_livebus_ordered[:, 1, :] = np.where(else_cond, new_fl[:, 1, :], final_livebus_ordered[:, 1, :])
+        current_xy_maneuvering_team = np.where(else_cond[..., None], new_cxym, current_xy)
+        final_livebus_ordered[:, 1, :] = np.where(else_cond[..., None], new_fl[:, 1, :], final_livebus_ordered[:, 1, :])
         maneuvering_time = np.where(else_cond, new_mt, maneuvering_time)
 
         # repair time if case
         calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver, final_livebus_ordered, livebus_loc,
-                        nc_sw_opened_loc, faulted_branch)
+                        nc_sw_opened_loc, faulted_branch, repair_time, maneuvering_time, current_xy_maneuvering_team,
+                        speed, current_xy_repair_team, nc_sw_opened_auto)
