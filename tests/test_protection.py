@@ -28,6 +28,18 @@ def fault_isolation_res(mpc):
                            np.array([[18, 19], [1, 16], [1, 20]]))
 
 
+@pytest.mark.skip
+def test_fault_isolation_nc_sw_opened_loc3(mpc):
+    nc_sw_opened_loc, _ = fault_isolation(mpc, np.array([[1, 4, 5, 0]]),
+                                          np.array([[4]]))
+    assert np.array_equal(nc_sw_opened_loc, np.array([[4, 5, 0, 0], [0, 0, 0, 0], [1, 9, 0, 0, ]]))
+
+
+def test_fault_isolation_nc_sw_opened_loc(fault_isolation_res):
+    _, mg_faulted = fault_isolation_res
+    assert np.array_equal(mg_faulted, np.array([[0, 1, 0, 0, 0, ], [0, 1, 0, 0, 1, ], [0, 1, 0, 0, 0, ]]))
+
+
 # testing row 1 of mg_res
 def test_mg_flag_bus1(mg_res):
     flag_bus, flag_branch, nc_sw_mg = mg_res

@@ -61,7 +61,7 @@ def fault_isolation(mpc_obj, nc_sw_loc, faulted_branch):
         mgf = np.ndarray.astype(flag_branch[np.arange(flag_branch.shape[0]), faulted_branch[:, i] - 1], dtype=int)
         for j in range(nc_sw_loc.shape[1]):
             condition = np.logical_and(np.logical_or(nc_sw_mg[:, j, 1] == mgf, nc_sw_mg[:, j, 2] == mgf),
-                                       np.logical_not(np.isin(nc_sw_loc[:, j], nc_sw_opened_loc)))
+                                       np.logical_not((nc_sw_loc[:, j][..., None] == nc_sw_opened_loc).any(axis=1)))
             nc_sw_opened_loc[:, j] = np.where(condition, nc_sw_loc[:, j], nc_sw_opened_loc[:, j])
 
         mg_faulted[np.arange(mgf.shape[0]), mgf - 1] = 1

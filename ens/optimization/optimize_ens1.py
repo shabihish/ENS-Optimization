@@ -47,6 +47,3 @@ def optimize(mpc_obj, avail_branches, switches_arr, sw_recloser_exist, sw_sectio
                         sw_sectioner_automatic_exist=sw_sectioner_automatic_exist,
                         sw_sectioner_manual_exist=sw_sectioner_manual_exist, sw_cutout_exist=sw_cutout_exist,
                         livebus_loc=livebus_loc, livebus_auto=livebus_auto,
-                        current_xy=current_xy, speed=speed)
-
-    print('r')

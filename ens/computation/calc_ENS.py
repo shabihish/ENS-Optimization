@@ -160,7 +160,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         temp_d = np.array(mpc_obj.bus_xy.iloc[temp_b, :])
         fault_xy = (temp_c + temp_d) / 2
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
-        if h >= 7:
+        if h >= 4:
             print('b')
         current_xy = fault_xy
 
@@ -238,5 +238,5 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
         # cases actualization
         tot_ENS += np.where(np.array(repair_time) > maneuvering_time, repair_ens1, repair_ens2)
-        print('ens: ' + str(tot_ENS[0]))
+        print('ens: ' + str(tot_ENS[1]))
     print(tot_ENS)
