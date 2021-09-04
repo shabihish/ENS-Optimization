@@ -1,5 +1,4 @@
 import numpy as np
-
 from ens.helper.helper import *
 
 
@@ -16,10 +15,10 @@ def calc_isolation_switch_time(mpc_obj, nc_sw_opened_loc, nc_sw_opened_auto, cur
         dist = np.zeros(nc_sw_opened_loc.shape)
         dist_set = np.zeros(nc_sw_opened_loc.shape, dtype=bool)
         for i in range(nc_sw_opened_loc.shape[1]):
-            target_xy_x = np.array(mpc_obj.branch.iloc[nc_sw_opened_loc[:, i] - 1, 0].T)
-            target_xy = np.array(mpc_obj.bus_xy.iloc[target_xy_x - 1, :])
+            target_xy_x = np.where(nc_sw_opened_loc[:, i]!=0, np.array(mpc_obj.branch.iloc[nc_sw_opened_loc[:, i] - 1, 0].T), 0)
+            target_xy = np.where(target_xy_x==0, np.array(mpc_obj.bus_xy.iloc[target_xy_x - 1, :]),0)
             dist[:, i] = np.where(nc_sw_opened_loc[:, i] != 0, get_dist(current_xy, target_xy), np.inf)
-            dist_set[:, i] = np.where(nc_sw_opened_loc[:, i] == 0, False, True)
+            dist_set[:, i] = np.where(nc_sw_opened_loc[:, i] != 0, True, False)
 
         idx = np.argmin(dist, axis=1)
 
@@ -31,7 +30,9 @@ def calc_isolation_switch_time(mpc_obj, nc_sw_opened_loc, nc_sw_opened_auto, cur
                               current_xy)
         new_isolation_time = isolation_time + dist[np.arange(dist.shape[0]), idx] / speed
         isolation_time = np.where(tmp_cond, new_isolation_time, isolation_time)
+        # idx = idx = np.where(np.array(dist) == np.array(dist).min())[0]
         nc_sw_opened_loc = (nc_sw_opened_loc[np.arange(nc_sw_opened_loc.shape[1]) != idx[..., None]]).reshape(
             nc_sw_opened_loc.shape[0], -1)
+        # nc_sw_opened_loc = np.where(dist == dist[np.arange(dist.shape[0]), idx][..., None], np.inf, nc_sw_opened_loc)
 
     return isolation_time, current_xy

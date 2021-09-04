@@ -5,7 +5,7 @@ from ens.computation.protection import *
 from ens.computation.calc_isolation_switch_time import calc_isolation_switch_time
 from ens.computation.manoeuvering_bus import maneuvering_bus
 from ens.computation.restoration import restoration
-from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning_non_sorting
 from ens.helper.vct_helper import get_next_valued_slice_along_axis, get_last_valued_slice_along_axis
 
 
@@ -160,6 +160,8 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         temp_d = np.array(mpc_obj.bus_xy.iloc[temp_b, :])
         fault_xy = (temp_c + temp_d) / 2
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
+        if h >= 5:
+            print('b')
         current_xy = fault_xy
 
         # Choosing the recloser or sectionalizer that breaks the current fault, neglecting the other in fault isolation
@@ -170,8 +172,8 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         nc_sw_loc = np.append(used_protector, sw_isolator_loc, axis=1)
         nc_sw_auto = np.append(np.ones((sw_isolator_auto.shape[0], 1)), sw_isolator_auto, axis=1)
 
-        nc_sw_loc = roll_non_zero_rows_to_beginning(nc_sw_loc, axis=1)[:, :33]
-        nc_sw_auto = roll_non_zero_rows_to_beginning(nc_sw_auto, axis=1)[:, :33]
+        nc_sw_loc = roll_non_zero_rows_to_beginning_sorting(nc_sw_loc, axis=1)[:, :33]
+        nc_sw_auto = roll_non_zero_rows_to_beginning_sorting(nc_sw_auto, axis=1)[:, :33]
 
         nc_sw_opened_loc, mg_faulted = fault_isolation(mpc_obj, nc_sw_loc, faulted_branch)
         # _, index_of_nc_sw_opened_loc_in_nc_sw_loc = is_member(nc_sw_opened_loc, nc_sw_loc)
@@ -185,7 +187,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         idx_tmp = np.zeros((nc_sw_auto.shape), dtype=bool)
         # TODO: check correctness
         for j in range(nc_sw_auto.shape[1]):
-            idx_tmp = np.logical_or(idx_tmp, nc_sw_opened_loc == nc_sw_loc[:, j][np.newaxis].T)
+            idx_tmp = np.logical_or(idx_tmp, nc_sw_loc == nc_sw_opened_loc[:, j][np.newaxis].T)
         nc_sw_opened_loc = np.where(nc_sw_opened_loc == -1, 0, nc_sw_opened_loc)
         nc_sw_opened_auto = np.where(idx_tmp, nc_sw_auto, 0)
 
@@ -236,5 +238,5 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
         # cases actualization
         tot_ENS += np.where(np.array(repair_time) > maneuvering_time, repair_ens1, repair_ens2)
-        print('ens: ' + str(tot_ENS))
+        print('ens: ' + str(tot_ENS[0]))
     print(tot_ENS)

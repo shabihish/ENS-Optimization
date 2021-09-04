@@ -1,5 +1,5 @@
 import numpy as np
-from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning_sorting, roll_non_zero_rows_to_beginning_non_sorting
 
 
 def mgdefinition(mpc_obj, nc_sw):
@@ -42,13 +42,13 @@ def mgdefinition(mpc_obj, nc_sw):
         nc_sw_mg[:, i, 1] = np.where(linked == 0, flag_bus[:, start_index], nc_sw_mg[:, i, 1])
         nc_sw_mg[:, i, 2] = np.where(linked == 0, flag_bus[:, end_index], nc_sw_mg[:, i, 2])
 
-    nc_sw_mg = roll_non_zero_rows_to_beginning(nc_sw_mg, axis=1)
+    nc_sw_mg = roll_non_zero_rows_to_beginning_sorting(nc_sw_mg, axis=1)
 
     return flag_bus, flag_branch, nc_sw_mg
 
 
 def fault_isolation(mpc_obj, nc_sw_loc, faulted_branch):
-    nc_sw_loc = roll_non_zero_rows_to_beginning(nc_sw_loc, axis=1)
+    nc_sw_loc = roll_non_zero_rows_to_beginning_sorting(nc_sw_loc, axis=1)
     faulted_branch = np.array(faulted_branch)
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_loc)
 
@@ -66,5 +66,5 @@ def fault_isolation(mpc_obj, nc_sw_loc, faulted_branch):
 
         mg_faulted[np.arange(mgf.shape[0]), mgf - 1] = 1
 
-    nc_sw_opened_loc = roll_non_zero_rows_to_beginning(nc_sw_opened_loc, axis=1)
+    nc_sw_opened_loc = roll_non_zero_rows_to_beginning_non_sorting(nc_sw_opened_loc, axis=1)
     return nc_sw_opened_loc, mg_faulted

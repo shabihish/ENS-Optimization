@@ -1,9 +1,13 @@
 import numpy as np
 
 
-def roll_non_zero_rows_to_beginning(arr, axis=0):
+def roll_non_zero_rows_to_beginning_non_sorting(arr, axis=0):
+    return arr[np.arange(arr.shape[0])[..., None], np.argsort(arr == 0, axis=axis)]
+
+
+def roll_non_zero_rows_to_beginning_sorting(arr, axis=0):
     prev_max = np.max(arr)
-    marr = np.sort(np.where(arr == 0, prev_max + 1, arr), axis=1)
+    marr = np.sort(np.where(arr == 0, prev_max + 1, arr), axis=axis)
     return np.where(marr == prev_max + 1, 0, marr)
 
 

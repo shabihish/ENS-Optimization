@@ -1,7 +1,7 @@
 import numpy as np
 from ens.computation.restoration import restoration
 from ens.computation.fault_management import mgdefinition, fault_isolation
-from ens.helper.vct_helper import roll_non_zero_rows_to_beginning
+from ens.helper.vct_helper import roll_non_zero_rows_to_beginning_sorting
 
 
 # This function determines the recloser that breaks the current fault, neglecting the other recloser in fault isolation
@@ -19,7 +19,7 @@ def protection_type_selector(mpc_obj, sw_protector, faulted_branch, livebus_loc)
 
     used_protector = np.zeros((nc_sw_mg.shape[0], nc_sw_mg.shape[1]))
     used_protector = np.where(b_arr, nc_sw_mg[:, :, 0], 0)
-    used_protector = roll_non_zero_rows_to_beginning(used_protector, axis=1)
+    used_protector = roll_non_zero_rows_to_beginning_sorting(used_protector, axis=1)
     # used_protector = nc_sw_mg[b[0], 0]
 
     flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, used_protector)
