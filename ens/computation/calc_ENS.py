@@ -160,7 +160,7 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         temp_d = np.array(mpc_obj.bus_xy.iloc[temp_b, :])
         fault_xy = (temp_c + temp_d) / 2
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
-        if h >= 5:
+        if h >= 7:
             print('b')
         current_xy = fault_xy
 
@@ -172,8 +172,8 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         nc_sw_loc = np.append(used_protector, sw_isolator_loc, axis=1)
         nc_sw_auto = np.append(np.ones((sw_isolator_auto.shape[0], 1)), sw_isolator_auto, axis=1)
 
-        nc_sw_loc = roll_non_zero_rows_to_beginning_sorting(nc_sw_loc, axis=1)[:, :33]
-        nc_sw_auto = roll_non_zero_rows_to_beginning_sorting(nc_sw_auto, axis=1)[:, :33]
+        nc_sw_loc = roll_non_zero_rows_to_beginning_non_sorting(nc_sw_loc, axis=1)[:, :33]
+        nc_sw_auto = roll_non_zero_rows_to_beginning_non_sorting(nc_sw_auto, axis=1)[:, :33]
 
         nc_sw_opened_loc, mg_faulted = fault_isolation(mpc_obj, nc_sw_loc, faulted_branch)
         # _, index_of_nc_sw_opened_loc_in_nc_sw_loc = is_member(nc_sw_opened_loc, nc_sw_loc)
