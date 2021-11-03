@@ -8,7 +8,7 @@ from ens.computation.calc_isolation_switch_time import calc_isolation_switch_tim
 
 @pytest.fixture
 def mpc():
-    return MPC(os.path.join('cases/case33bw'))
+    return MPC(os.path.join('data/case33bw'))
 
 
 # @pytest.mark.skip

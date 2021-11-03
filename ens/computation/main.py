@@ -13,7 +13,7 @@ from ens.computation.calc_ENS import *
 if __name__ == '__main__':
     # initialization
     clearc()
-    mpc_obj = MPC(os.path.join('cases/case33bw'))
+    mpc_obj = MPC(os.path.join('data/case33bw'))
 
     livebus_loc = [1, 18, 22, 25, 33]
     livebus_auto = [1, 1, 0, 0, 0]

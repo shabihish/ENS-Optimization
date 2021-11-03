@@ -8,7 +8,7 @@ from ens.computation.restoration import restoration
 
 @pytest.fixture
 def mpc():
-    return MPC(os.path.join('cases/case33bw'))
+    return MPC(os.path.join('data/case33bw'))
 
 @pytest.fixture
 def restoration_res1(mpc):

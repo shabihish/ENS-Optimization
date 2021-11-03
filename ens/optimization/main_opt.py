@@ -5,7 +5,7 @@ from ens.helper.MPC import MPC
 from ens.optimization.optimize_ens import optimize_ens
 
 clearc()
-mpc_obj = MPC('cases/case33bw')
+mpc_obj = MPC('data/case33bw')
 # livebus_loc = [[1, 18, 22, 25, 33],[1, 18, 22, 25, 33]]
 # livebus_auto = [[1, 1, 0, 0, 0],[1, 1, 0, 0, 0]]
 #

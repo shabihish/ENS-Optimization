@@ -1,6 +1,8 @@
 .idea
 **/*.pyc
 *.pyc
+*.txt
 cases
 ens/test_codes/
 ens/computation/main1.py
+buses.csv

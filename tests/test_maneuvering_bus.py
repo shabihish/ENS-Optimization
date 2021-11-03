@@ -7,7 +7,7 @@ import numpy as np
 
 @pytest.fixture
 def mpc():
-    return MPC(os.path.join('cases/case33bw'))
+    return MPC(os.path.join('data/case33bw'))
 
 
 def test1_maneuvering_bus(mpc):

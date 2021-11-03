@@ -9,7 +9,7 @@ from ens.computation.fault_management import mgdefinition, fault_isolation
 
 @pytest.fixture
 def mpc():
-    return MPC(os.path.join('cases/case33bw'))
+    return MPC(os.path.join('data/case33bw'))
 
 
 @pytest.fixture
