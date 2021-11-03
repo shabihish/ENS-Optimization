@@ -16,7 +16,7 @@ def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebu
         tmp_cond = np.where(livebus_loc == final_livebus_ordered[:, 0, j][..., None], livebus_auto, 0).any(axis=1)
         final_livebus_ordered[:, 1, j] = np.where(tmp_cond, 0, final_livebus_ordered[:, 1, j])
         else_cond = np.logical_not(tmp_cond)
-        # TODO: check correctness
+
         final_livebus_ordered[:, 1, j] = np.where(
             (else_cond * (final_livebus_ordered[:, 0, j] != 0)),
             get_dist(current_xy_maneuvering_team, np.array(bus_xy.iloc[final_livebus_ordered[:, 0, j] - 1, :])) / speed,
@@ -53,7 +53,7 @@ def calc_repair_ens(mpc_obj, ENS0, restoration_time, lost_power_before_maneuver,
         mg_status = restoration(mpc_obj, nc_sw_opened_loc, faulted_branch, livebus_new)
 
         lost_power1 = np.zeros(final_livebus_ordered.shape[0])
-        # TODO: check correctness
+
         mg_bus_indicator_sum = (np.array(mpc_obj.bus.iloc[:, 2])[..., None] * np.ndarray.astype(
             flag_bus[..., None] == np.arange(1, mg_status.shape[1] + 1), int)).sum(axis=1)
         lost_power1 += np.where((mg_status == 0) * final_livebus_ordered[:, :, i].any(axis=1)[..., None],
@@ -151,7 +151,9 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
     sw_protector_loc = np.c_[sw_recloser, sw_sectionalizer]
 
     tot_ENS = 0
-    for h in range(1, mpc_obj.branch.shape[0] + 1):
+
+    max_h = mpc_obj.branch.shape[0]
+    for h in range(1, max_h + 1):
         faulted_branch = np.ones((livebus_loc.shape[0], 1), dtype=int) * h
 
         temp_a = int(mpc_obj.branch.at[h - 1, 0]) - 1
@@ -160,8 +162,6 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         temp_d = np.array(mpc_obj.bus_xy.iloc[temp_b, :])
         fault_xy = (temp_c + temp_d) / 2
         time_to_reach_to_faulty_point = get_dist(current_xy, fault_xy) / speed
-        if h >= 4:
-            print('b')
         current_xy = fault_xy
 
         # Choosing the recloser or sectionalizer that breaks the current fault, neglecting the other in fault isolation
@@ -176,16 +176,11 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
         nc_sw_auto = roll_non_zero_rows_to_beginning_non_sorting(nc_sw_auto, axis=1)[:, :33]
 
         nc_sw_opened_loc, mg_faulted = fault_isolation(mpc_obj, nc_sw_loc, faulted_branch)
-        # _, index_of_nc_sw_opened_loc_in_nc_sw_loc = is_member(nc_sw_opened_loc, nc_sw_loc)
-        # index_of_nc_sw_opened_loc_in_nc_sw_loc =
         nc_sw_opened_loc = nc_sw_opened_loc[:, :nc_sw_auto.shape[1]]
         nc_sw_loc = nc_sw_loc[:, :nc_sw_auto.shape[1]]
 
-        # TODO: remove this line
-        # nc_sw_opened_loc[:, [1, 2]] = 1
         nc_sw_opened_loc = np.where(nc_sw_opened_loc == 0, -1, nc_sw_opened_loc)
         idx_tmp = np.zeros((nc_sw_auto.shape), dtype=bool)
-        # TODO: check correctness
         for j in range(nc_sw_auto.shape[1]):
             idx_tmp = np.logical_or(idx_tmp, nc_sw_loc == nc_sw_opened_loc[:, j][np.newaxis].T)
         nc_sw_opened_loc = np.where(nc_sw_opened_loc == -1, 0, nc_sw_opened_loc)
@@ -238,5 +233,5 @@ def calc_ENS(mpc_obj, sw_recloser, sw_sectionalizer, sw_automatic_sectioner, sw_
 
         # cases actualization
         tot_ENS += np.where(np.array(repair_time) > maneuvering_time, repair_ens1, repair_ens2)
-        print('ens: ' + str(tot_ENS[1]))
-    print(tot_ENS)
+        print('Total Progress: %{}'.format(h * 100.0 / max_h))
+    return tot_ENS

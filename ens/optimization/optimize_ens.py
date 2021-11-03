@@ -8,6 +8,15 @@ def optimize_ens(mpc_obj, livebus_loc, livebus_auto, sw_recloser_exist, sw_secti
                  sw_sectioner_automatic_exist, sw_sectioner_manual_exist, sw_cutout_exist, current_xy, speed,
                  num_of_new_reclosers, num_of_new_sectionalizers, num_of_new_automatic_sectioners,
                  num_of_new_manual_sectioners, num_of_new_cutouts):
+    # livebus_loc = np.array(livebus_loc)
+    # livebus_auto = np.array(livebus_auto)
+    # sw_recloser_exist = np.array([sw_recloser_exist])
+    # sw_sectionalizer_exist = np.array([sw_sectionalizer_exist])
+    # sw_sectioner_automatic_exist = np.array([sw_sectioner_automatic_exist])
+    # sw_sectioner_manual_exist = np.array([sw_sectioner_manual_exist])
+    # sw_cutout_exist = np.array([sw_cutout_exist])
+    # current_xy = np.array(current_xy)
+
     switches_arr = np.array([num_of_new_reclosers, num_of_new_cutouts,
                              num_of_new_sectionalizers, num_of_new_manual_sectioners, num_of_new_automatic_sectioners])
 
@@ -70,4 +79,4 @@ def optimize(current_ens, mpc_obj, avail_branches, switches_arr, sw_recloser_exi
     #                                  speed))
     return min(current_ens, current_ens - 1)
 
-    np.array([x for x in combinations(np.arange(1, 32), 6)])
+    # np.array([x for x in combinations(np.arange(1, 32), 6)])

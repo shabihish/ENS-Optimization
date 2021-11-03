@@ -19,7 +19,7 @@ def maneuvering_bus(mpc_obj, livebus_loc, livebus_auto, nc_sw_opened_loc, faulte
             flag_bus, flag_branch, nc_sw_mg = mgdefinition(mpc_obj, nc_sw_opened_loc)
             restored_MGs = mg_status2 - mg_status1
             restoredPower = np.zeros(nc_sw_opened_loc.shape[0])
-            # TODO: optimize this
+
             for j in range(mg_status2.shape[1]):
                 param_a = np.where(flag_bus == j + 1, mpc_obj.bus.iloc[:, 2], 0)
                 param_b = np.where(flag_bus == j + 1, mpc_obj.load_weight.iloc[:, 0], 0)
