@@ -7,8 +7,6 @@ from ens.computation.manoeuvering_bus import maneuvering_bus
 from ens.computation.restoration import restoration
 from ens.helper.vct_helper import roll_non_zero_rows_to_beginning_non_sorting
 from ens.helper.vct_helper import get_next_valued_slice_along_axis, get_last_valued_slice_along_axis
-
-
 def get_maneuvering_contextual_details(final_livebus_ordered, current_xy, livebus_loc, livebus_auto, bus_xy, speed):
     final_livebus_ordered = np.array(final_livebus_ordered, copy=True)
     current_xy_maneuvering_team = current_xy
